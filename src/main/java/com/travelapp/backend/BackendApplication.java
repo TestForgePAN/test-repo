@@ -10,7 +10,7 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @EnableSwagger2
 @SpringBootApplication
 public class BackendApplication {
-	// dummy commit 
+	// dummy commit - 2
 	public static void main(String[] args) {
 		SpringApplication.run(BackendApplication.class, args);
 	}
