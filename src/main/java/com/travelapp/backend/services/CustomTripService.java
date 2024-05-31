@@ -1,171 +1,84 @@
 package com.travelapp.backend.services;
-
 import java.math.BigDecimal;
-import java.util.List;
-
-import com.travelapp.backend.models.CustomTrip;
-import com.travelapp.backend.models.CustomTripItem;
-import com.travelapp.backend.repositories.CustomTripItemRepository;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.when;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.test.context.junit4.SpringRunner;
 import com.travelapp.backend.repositories.CustomTripRepository;
+import com.travelapp.backend.repositories.CustomTripItemRepository;
+import java.util.*;
+import static org.mockito.Mockito.mock;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+@RunWith(SpringRunner.class)
+public class CustomTripServiceTest {
+    private final int tripId = 1;
+    private final int itemId = 1;
 
-@Service
-public class CustomTripService {
+    @Test
+    public void retrieveAllCustomTrips() {
+        //given
+        CustomTripRepository customTripRepositoryMock = mock(CustomTripRepository.class);
+        CustomTripItemRepository customTripItemRepositoryMock = mock(CustomTripItemRepository.class);
+        List<CustomTrip> expectedList = Arrays.asList();
 
-    private CustomTripRepository customTripRepository;
-    private CustomTripItemRepository customTripItemRepository;
+        when(customTripRepositoryMock.findAll()).thenReturn(expectedList);
 
-    @Autowired
-    public CustomTripService(
-            CustomTripRepository customTripRepository,
-            CustomTripItemRepository customTripItemRepository) {
-        this.customTripRepository = customTripRepository;
-        this.customTripItemRepository = customTripItemRepository;
+        CustomTripService service = new CustomTripService(customTripRepositoryMock, customTripItemRepositoryMock);
+
+        //when
+        List<CustomTrip> result = service.retrieveAllCustomTrips();
+
+        //then
+        assertEquals("Expected and actual list are not equal", expectedList, result);
     }
 
-    public CustomTrip retrieveCustomTripById(Integer tripId) {
-        return this.customTripRepository.findById(tripId)
-                .orElseThrow(() -> new RuntimeException("Could not find requested CustomTrip"));
+    @Test
+    public void retrieveAllCustomTripItems() {
+        //given
+        CustomTripRepository customTripRepositoryMock = mock(CustomTripRepository.class);
+        CustomTripItemRepository customTripItemRepositoryMock = mock(CustomTripItemRepository.class);
+        List<CustomTripItem> expectedList = Arrays.asList();
+
+        when(customTripItemRepositoryMock.findAll()).thenReturn(expectedList);
+
+        CustomTripService service = new CustomTripService(customTripRepositoryMock, customTripItemRepositoryMock);
+
+        //when
+        List<CustomTripItem> result = service.retrieveAllCustomTripItems();
+
+        //then
+        assertEquals("Expected and actual list are not equal", expectedList, result);
     }
 
-    public List<CustomTrip> retrieveAllCustomTrips() {
-        return this.customTripRepository.findAll();
+    @Test(expected = RuntimeException.class)
+    public void retrieveCustomTripById() {
+        //given
+        CustomTripRepository customTripRepositoryMock = mock(CustomTripRepository.class);
+        CustomTripItemRepository customTripItemRepositoryMock = mock(CustomTripItemRepository.class);
+
+        when(customTripRepositoryMock.findById()).thenThrow(RuntimeException.class("tripId does not exist"));
+        CustomTripService service = new CustomTripService(customTripRepositoryMock, customTripItemRepositoryMock);
+        //when
+        List<CustomTrip> result = service.retrieveAllCustomTrips();
     }
+@Test(expected= RuntimeException.class)
+public void retrieveAllCustomTrips() {
+    //given
+    CustomTripRepository customTripRepositoryMock = mock(CustomTripRepository.class);
+    CustomTripItemRepository customTripItemRepositoryMock = mock(CustomTripItemRepository.class);
+    List<CustomTrip> expectedList = Arrays.asList();
 
-    public CustomTrip createNewCustomTrip(CustomTrip customTrip) {
-        return this.customTripRepository.save(customTrip);
-    }
+    when(customTripRepositoryMock.findAll()).thenReturn(expectedList);
 
-    public CustomTrip updateCustomTripByTripId(Integer tripId, CustomTrip params) {
-        CustomTrip customTrip = this.customTripRepository.findById(params.getTripId())
-                .orElseThrow(() -> new RuntimeException("tripId does not exist"));
+    CustomTripService service = new CustomTripService(customTripRepositoryMock, customTripItemRepositoryMock);
 
-        if (params.getTripCode() != null) {
-            customTrip.setTripCode(params.getTripCode());
-        }
+    //when
+    List<CustomTrip> result = service.retrieveAllCustomTrips();
 
-        if (params.getTripCountry() != null) {
-            customTrip.setTripCountry(params.getTripCountry());
-        }
+    //then
+    assertEquals("Expected and actual list are not equal", expectedList, result);
+}<file_sep># Task 5 - e
 
-        if (params.getTripDuration() != null) {
-            customTrip.setTripDuration(params.getTripDuration());
-        }
+## Question - e
 
-        if (params.getTripName() != null) {
-            customTrip.setTripName(params.getTripName());
-        }
-
-        if (params.getCustomTripItems() != null && !params.getCustomTripItems().isEmpty()) {
-            // has CustomTripItems
-
-            List<CustomTripItem> customTripItemList = this.customTripItemRepository.findAllByCustomTripTripId(tripId);
-
-            if (customTripItemList.isEmpty()) {
-                customTrip.setCustomTripItems(params.getCustomTripItems());
-            } else {
-                customTripItemList.addAll(params.getCustomTripItems());
-            }
-            // TODO: sort out update vs post
-            customTrip.setCustomTripItems(customTripItemList);
-
-            for (CustomTripItem item : params.getCustomTripItems()) {
-                item.setCustomTrip(customTrip);
-            }
-
-            this.customTripItemRepository.saveAll(customTripItemList);
-        }
-
-        this.customTripRepository.save(customTrip);
-        return customTrip;
-
-    }
-
-    public void deleteCustomTripByTripId(Integer tripId) {
-        this.customTripRepository.findById(tripId)
-                .orElseThrow(() -> new RuntimeException("tripId does not exist"));
-
-        this.customTripRepository.deleteById(tripId);
-    }
-
-    // CustomTripItems below
-
-    public List<CustomTripItem> retrieveAllCustomTripItems() {
-        return this.customTripItemRepository.findAll();
-    }
-
-    public List<CustomTripItem> retrieveAllCustomTripItemByTripId(Integer tripId) {
-        this.customTripRepository.findById(tripId)
-                .orElseThrow(() -> new RuntimeException("tripId does not exist"));
-        return this.customTripItemRepository.findAllByCustomTripTripId(tripId);
-    }
-
-    public List<CustomTripItem> retrieveAllCustomTripItemByLessThanMaxPrice(String itemPrice) {
-        BigDecimal maxItemPrice = new BigDecimal(itemPrice);
-
-        if (maxItemPrice.compareTo(new BigDecimal(1)) >= 0) {
-            return customTripItemRepository.findByTripItemPriceLessThan(maxItemPrice);
-        } else {
-            System.out.println("hello");
-            throw new RuntimeException("Invalid Value");
-        }
-    }
-
-    public CustomTripItem retrieveCustomTripItemByTripIdAndItemId(Integer tripId, Integer itemId) {
-        this.customTripItemRepository.findById(tripId)
-                .orElseThrow(() -> new RuntimeException("tripId does not exist"));
-
-        return this.customTripItemRepository.findByTripItemIdAndCustomTripTripId(itemId, tripId)
-                .orElseThrow(() -> new RuntimeException("itemId does not exist"));
-    }
-
-    public CustomTripItem createCustomTripItemByTripId(Integer tripId, CustomTripItem customTripItem) {
-        CustomTrip customTrip = this.customTripRepository.findById(tripId)
-                .orElseThrow(() -> new RuntimeException("tripId does not exist"));
-
-        // TODO: Validation
-
-        customTripItem.setCustomTrip(customTrip);
-        return this.customTripItemRepository.save(customTripItem);
-    }
-
-    public CustomTripItem updateCustomTripItemByTripIdAndItemId(Integer tripId, Integer itemId, CustomTripItem params) {
-
-        CustomTrip customTrip = this.customTripRepository.findById(tripId)
-                .orElseThrow(() -> new RuntimeException("tripId does not exist"));
-
-        CustomTripItem customTripItem = this.customTripItemRepository
-                .findByTripItemIdAndCustomTripTripId(itemId, tripId)
-                .orElseThrow(() -> new RuntimeException("itemId does not exist"));
-
-        customTripItem.setCustomTrip(customTrip);
-
-        if (params.getTripItemDays() != null) {
-            customTripItem.setTripItemDays(params.getTripItemDays());
-        }
-
-        if (params.getTripItemDescription() != null) {
-            customTripItem.setTripItemDescription(params.getTripItemDescription());
-        }
-
-        if (params.getTripItemTime() != null) {
-            customTripItem.setTripItemTime(params.getTripItemTime());
-        }
-
-        return this.customTripItemRepository.save(customTripItem);
-    }
-
-    public void deleteCustomTripItemBytripIdAndItemId(Integer itemId, Integer tripId) {
-        this.customTripRepository.findById(tripId)
-                .orElseThrow(() -> new RuntimeException("tripId does not exist"));
-
-        this.customTripItemRepository.findByTripItemIdAndCustomTripTripId(tripId, itemId)
-                .orElseThrow(() -> new RuntimeException("itemId does not exist"));
-
-        this.customTripItemRepository.deleteById(itemId);
-    }
-
-    // change - demo
-}
