@@ -154,6 +154,8 @@ public class CustomTripService {
             customTripItem.setTripItemTime(params.getTripItemTime());
         }
 
+        console.log(
+
         return this.customTripItemRepository.save(customTripItem);
     }
 
